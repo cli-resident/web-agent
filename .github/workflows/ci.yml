@@ -30,9 +30,6 @@ jobs:
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DWA_BUILD_TESTS=ON
 
-      - name: Build
-        run: cmake --build build --config Debug
-
       - name: Add build outputs to PATH (Windows)
         if: runner.os == 'Windows'
         run: |
@@ -45,6 +42,9 @@ jobs:
             "$Env:GITHUB_WORKSPACE\build\_deps\nlohmann_json-build\Debug"
           ) -join ';'
           echo "$paths;$Env:PATH" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8
+
+      - name: Build
+        run: cmake --build build --config Debug
 
       - name: Run Tests
         working-directory: build
