@@ -1,0 +1,43 @@
+# Build output
+build/
+_deps/
+.cache/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Makefile
+
+# Compiled objects
+*.o
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+
+# Logs
+*.log
+
+# IDE / Editor
+.vs/
+*.user
+*.suo
+.idea/
+*.swp
+*.swo
+*.code-workspace
+
+# Compilation database
+compile_commands.json
+
+# Testing artifacts
+Testing/
+test_*.tmp
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache FetchContent dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: ${{ runner.os }}-deps-${{ hashFiles('CMakeLists.txt', 'cmake/Dependencies.cmake') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -DWA_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build --config Debug
+
+      - name: Run Tests
+        working-directory: build
+        run: ctest --output-on-failure --build-config Debug
+
+      - name: Upload web_agent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web_agent-${{ matrix.os }}
+          path: |
+            build/web_agent
+            build/Debug/web_agent.exe
+          if-no-files-found: ignore
