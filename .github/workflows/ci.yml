@@ -33,6 +33,19 @@ jobs:
       - name: Build
         run: cmake --build build --config Debug
 
+      - name: Add build outputs to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          $paths = @(
+            "$Env:GITHUB_WORKSPACE\build\Debug",
+            "$Env:GITHUB_WORKSPACE\build\tests\Debug",
+            "$Env:GITHUB_WORKSPACE\build\_deps\zlib-build\Debug",
+            "$Env:GITHUB_WORKSPACE\build\_deps\cpr-build\Debug",
+            "$Env:GITHUB_WORKSPACE\build\_deps\spdlog-build\Debug",
+            "$Env:GITHUB_WORKSPACE\build\_deps\nlohmann_json-build\Debug"
+          ) -join ';'
+          echo "$paths;$Env:PATH" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8
+
       - name: Run Tests
         working-directory: build
         run: ctest --output-on-failure --build-config Debug
