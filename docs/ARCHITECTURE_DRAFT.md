@@ -1,8 +1,5 @@
 ﻿# Черновик архитектуры WEB-AGENT
 
-**Статус:** обновлено после ЛР №1
-**Версия:** 0.2 (22.03.2026)
-
 ---
 
 ## Обзор
@@ -74,16 +71,16 @@ flowchart LR
 
 ---
 
-## Модули и текущий статус
+## Модули
 
-| Модуль | Файлы | Ответственность | Статус (март 2026) |
-|---|---|---|---|
-| Config | `include/config.h`, `src/config.cpp` | Загрузка JSON, валидация, сохранение `access_code` в исходный файл | Реализован |
-| Logger | `include/logger.h`, `src/logger.cpp` | Потокобезопасное логирование через spdlog (stdout + rotating file) | Реализован |
-| HttpClient | `include/http_client.h`, `src/http_client.cpp` | POST `/wa_reg`, `/wa_task`, `/wa_result`, JSON/multipart, базовые таймауты | Реализован (без retry/backoff) |
-| Agent | `include/agent.h`, `src/agent.cpp` | Регистрация, хранение `access_code`, запуск цикла опроса, делегирование задач | Частично (pollLoop/handleTask — заглушки) |
-| main | `src/main.cpp` | CLI (`--config`, `--help`, `--version`), запуск агента | Реализован |
-| Tests | `tests/*.cpp` | Проверка конфигурации, окружения и структуры репозитория | Реализовано для ЛР №1 |
+| Модуль | Файлы | Ответственность |
+|---|---|---|
+| Config | `include/config.h`, `src/config.cpp` | Загрузка JSON, валидация обязательных полей и сохранение `access_code` в исходный файл |
+| Logger | `include/logger.h`, `src/logger.cpp` | Потокобезопасное логирование через spdlog (stdout + rotating file) |
+| HttpClient | `include/http_client.h`, `src/http_client.cpp` | POST `/wa_reg`, `/wa_task`, `/wa_result`, поддержка JSON и multipart, управление таймаутами и retry |
+| Agent | `include/agent.h`, `src/agent.cpp` | Регистрация, цикл опроса, очередь заданий и делегирование обработки, отправка результатов |
+| main | `src/main.cpp` | CLI (`--config`, `--help`, `--version`) и запуск жизненного цикла агента |
+| Tests | `tests/*.cpp` | Юнит- и интеграционные тесты модулей и инфраструктуры репозитория |
 
 ---
 
@@ -153,27 +150,4 @@ sequenceDiagram
 При остановке `Agent::stop()` выставляет `running_ = false`, poll_thread корректно завершает цикл, дожидается всех worker'ов, и только после этого управление возвращается в `main`.
 
 ---
-
-## План доработок (ЛР №2/№3)
-
-1. **HttpClient**
-   - реализовать retry с exponential backoff и настраиваемыми лимитами (`retry_count`, `retry_delay_sec`);
-   - разделить таймауты (connect/request/upload) согласно NFR;
-   - логировать тело ответа сервера при ошибках.
-2. **Agent**
-   - реализовать полноценный `pollLoop` со статусами WAIT/RUN/ERROR и поддержкой остановки по сигналу SIGINT/SIGTERM;
-   - добавить пул потоков и очередь задач, ограниченную `max_parallel_tasks`;
-   - реализовать `handleTask` для типов `CMD` и `EXEC`, включая захват stdout/stderr и подготовку `result_directory`.
-3. **Результаты задач**
-   - стандартизировать формат JSON в поле `result` (код, сообщение, список файлов);
-   - автоматизировать сбор файлов из `result_directory` (маски, лимит размера);
-   - обрабатывать ошибки загрузки (повторить, пометить статус ERROR, логировать).
-4. **Тестирование**
-   - покрыть `HttpClient` unit-тестами (mock-сервер);
-   - добавить интеграционные сценарии для регистрации и цикла опроса;
-   - расширить `RepositoryTest` проверкой новых артефактов (tasks/, results/, agent.log).
-5. **Документация**
-   - подготовить Doxygen-комментарии для публичных API;
-   - описать структуру `options` и типов задач в отдельном документе;
-   - синхронизировать README/TZ по мере реализации.
 
