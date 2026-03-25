@@ -11,6 +11,7 @@ namespace wa {
 Agent::Agent(Config cfg)
     : cfg_(std::move(cfg))
     , client_(cfg_)
+    , task_handler_(cfg_, client_)
 {
     WA_LOG_DEBUG("Agent constructed, UID={}", cfg_.uid);
 }
@@ -75,9 +76,9 @@ void Agent::pollLoop() {
         try {
             auto task = client_.requestTask();
             if (task.code == 1) {
-                WA_LOG_INFO("Получено задание: task_code={}, session_id={}, status={}",
-                            task.task_code, task.session_id, task.status);
-                // Обработка будет добавлена на следующих этапах
+                WA_LOG_INFO("Получено задание: task_code={}, options={}, session_id={}, status={}",
+                            task.task_code, task.options, task.session_id, task.status);
+                handleTask(task);
             } else if (task.code == 0 || task.status == "WAIT") {
                 WA_LOG_DEBUG("Новых задач нет (status=WAIT)");
             } else {
@@ -96,9 +97,6 @@ void Agent::pollLoop() {
 }
 
 void Agent::handleTask(const TaskInfo& task) {
-    // TODO: ЛР №3/4 — реализация обработки заданий
-    WA_LOG_INFO("Agent::handleTask() — stub, task_code={}, session_id={}",
-                task.task_code, task.session_id);
+    task_handler_.process(task);
 }
-
 } 

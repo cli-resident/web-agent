@@ -1,6 +1,7 @@
 #pragma once
 #include "config.h"
 #include "http_client.h"
+#include "task_handler.h"
 #include <atomic>
 #include <thread>
 
@@ -28,6 +29,7 @@ private:
 
     Config             cfg_;
     HttpClient         client_;
+    TaskHandler        task_handler_;
     std::atomic<bool>  running_{false};
     std::thread        poll_thread_;
 };

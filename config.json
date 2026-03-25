@@ -1,10 +1,10 @@
 {
-  "access_code": "e8944a-2cbd-5856-d045-31460dcc",
+  "access_code": "783e30-3385-3aa3-44f0-0f72a3d4",
   "descr": "web-agent",
   "log_file": "./agent.log",
-  "log_level": "debug", 
+  "log_level": "debug",
   "max_parallel_tasks": 4,
-  "poll_interval_sec": 10,
+  "poll_interval_sec": 5,
   "result_directory": "./results",
   "retry_count": 3,
   "retry_delay_sec": 5,

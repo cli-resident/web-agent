@@ -22,6 +22,7 @@ add_library(agent_lib STATIC
     src/logger.cpp
     src/http_client.cpp
     src/agent.cpp
+    src/task_handler.cpp
 )
 target_include_directories(agent_lib PUBLIC include)
 target_link_libraries(agent_lib PUBLIC
