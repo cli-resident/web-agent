@@ -12,4 +12,4 @@ target_compile_definitions(wa_tests PRIVATE
     PROJECT_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
 )
 include(GoogleTest)
-gtest_discover_tests(wa_tests)
+gtest_discover_tests(wa_tests DISCOVERY_MODE PRE_TEST)
