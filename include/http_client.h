@@ -2,6 +2,8 @@
 #include "config.h"
 #include <string>
 #include <vector>
+#include <functional>
+#include <cpr/cpr.h>
 
 namespace wa {
 
@@ -39,7 +41,7 @@ public:
     /// @brief POST /api/wa_task/ — запрос задания
     TaskInfo requestTask();
 
-    /// @brief POST /api/wa_result/ — отправка результата (multipart/form-data)
+    /// @brief POST /api/wa_result/ — отправка результата (multipart)
     ResultResponse sendResult(
         const std::string&              session_id,
         int                             result_code,
@@ -50,6 +52,12 @@ public:
 private:
     Config& cfg_;
     std::string buildUrl(const std::string& endpoint) const;
+
+    /// @brief Выполняет запрос с retry + exponential backoff
+    cpr::Response performWithRetry(
+        std::function<cpr::Response()> makeRequest,
+        bool treat_empty_ok
+    ) const;
 };
 
 } // namespace wa

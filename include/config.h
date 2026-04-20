@@ -12,6 +12,9 @@ struct Config {
     int    retry_count             = 3;
     int    retry_delay_sec         = 5;
     int    max_parallel_tasks      = 4;
+    int    connect_timeout_sec     = 5;   ///< connect timeout (сек)
+    int    request_timeout_sec     = 10;  ///< request timeout (сек)
+    int    upload_timeout_sec      = 30;  ///< upload timeout для /wa_result (сек)
     std::string task_directory     = "./tasks";
     std::string result_directory   = "./results";
     std::string log_file           = "./agent.log";
