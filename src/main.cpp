@@ -5,8 +5,20 @@
 #include <iostream>
 #include <string>
 #include <cstdlib>
+#include <thread>
+#include <chrono>
+#include <csignal>
+#include <atomic>
 
 static const char* VERSION = "1.0.0";
+static std::atomic<bool> g_running{true};
+
+static void signalHandler(int signal) {
+    if (signal == SIGINT) {
+        WA_LOG_INFO("Received Ctrl+C, shutting down gracefully...");
+        g_running = false;
+    }
+}
 
 static void printHelp(const char* prog) {
     std::cout << "Usage: " << prog << " [OPTIONS]\n"
@@ -36,6 +48,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    std::signal(SIGINT, signalHandler);
+
     wa::Config cfg;
     try {
         cfg = wa::Config::load(config_path);
@@ -60,5 +74,16 @@ int main(int argc, char* argv[]) {
     }
 
     agent.run();
+
+    WA_LOG_INFO("Agent is running in background. Press Ctrl+C to stop.");
+
+    while (g_running) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    WA_LOG_INFO("Shutting down agent...");
+    agent.stop();
+
+    WA_LOG_INFO("WEB-AGENT stopped.");
     return 0;
 }

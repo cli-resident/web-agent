@@ -1,14 +1,20 @@
 {
-  "access_code": "783e30-3385-3aa3-44f0-0f72a3d4",
+  "uid": "1339",
   "descr": "web-agent",
-  "log_file": "./agent.log",
-  "log_level": "debug",
-  "max_parallel_tasks": 4,
-  "poll_interval_sec": 5,
-  "result_directory": "./results",
-  "retry_count": 3,
-  "retry_delay_sec": 5,
   "server_url": "https://xdev.arkcom.ru:9999",
+  "access_code": "783e30-3385-3aa3-44f0-0f72a3d4",
+
+  "poll_interval_sec": 10,
+  "retry_count": 3,
+  "retry_delay_sec": 2,
+
+  "connect_timeout_sec": 5,
+  "request_timeout_sec": 10,
+  "upload_timeout_sec": 30,
+
+  "log_level": "debug",
+  "log_file": "./agent.log",
   "task_directory": "./tasks",
-  "uid": "1339"
+  "result_directory": "./results",
+  "max_parallel_tasks": 4
 }

@@ -27,6 +27,9 @@ Config Config::load(const std::string& path) {
     cfg.retry_count         = j.value("retry_count", 3);
     cfg.retry_delay_sec     = j.value("retry_delay_sec", 5);
     cfg.max_parallel_tasks  = j.value("max_parallel_tasks", 4);
+    cfg.connect_timeout_sec = j.value("connect_timeout_sec", 5);
+    cfg.request_timeout_sec = j.value("request_timeout_sec", 10);
+    cfg.upload_timeout_sec  = j.value("upload_timeout_sec", 30);
     cfg.task_directory      = j.value("task_directory", "./tasks");
     cfg.result_directory    = j.value("result_directory", "./results");
     cfg.log_file            = j.value("log_file", "./agent.log");
@@ -64,6 +67,9 @@ void Config::save() const {
         {"result_directory", result_directory},
         {"log_file", log_file},
         {"log_level", log_level},
+        {"connect_timeout_sec", connect_timeout_sec},
+        {"request_timeout_sec", request_timeout_sec},
+        {"upload_timeout_sec",  upload_timeout_sec},
         {"access_code", access_code}
     };
 

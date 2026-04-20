@@ -1,10 +1,10 @@
 #include "agent.h"
 #include "logger.h"
+#include "task_handler.h"
 #include <spdlog/spdlog.h>
 #include <chrono>
 #include <exception>
-
-// TODO: ЛР №3 — реализация цикла опроса агента
+#include <ctime>         
 
 namespace wa {
 
@@ -31,6 +31,7 @@ bool Agent::init() {
 
     WA_LOG_INFO("Agent::init() — registering UID={}", cfg_.uid);
     auto resp = client_.registerAgent();
+
     if (resp.code == 0) {
         cfg_.access_code = resp.access_code;
         WA_LOG_INFO("Agent registered, access_code={}", cfg_.access_code);
@@ -56,13 +57,10 @@ bool Agent::init() {
 }
 
 void Agent::run() {
-    // TODO: ЛР №3 — полная реализация цикла опроса
-    WA_LOG_INFO("Agent::run() — stub, starting poll loop");
+    WA_LOG_INFO("Agent::run() started, launching poll loop in background");
+
     running_ = true;
     poll_thread_ = std::thread(&Agent::pollLoop, this);
-    if (poll_thread_.joinable()) {
-        poll_thread_.join();
-    }
 }
 
 void Agent::stop() noexcept {
@@ -72,31 +70,37 @@ void Agent::stop() noexcept {
 
 void Agent::pollLoop() {
     WA_LOG_INFO("Agent::pollLoop() started, interval={}s", cfg_.poll_interval_sec);
+
+    int counter = 0;
+
     while (running_) {
         try {
             auto task = client_.requestTask();
+
             if (task.code == 1) {
-                WA_LOG_INFO("Получено задание: task_code={}, options={}, session_id={}, status={}",
-                            task.task_code, task.options, task.session_id, task.status);
+                WA_LOG_INFO("Получено задание от сервера: {}", task.task_code);
                 handleTask(task);
-            } else if (task.code == 0 || task.status == "WAIT") {
-                WA_LOG_DEBUG("Новых задач нет (status=WAIT)");
-            } else {
-                WA_LOG_WARN("Необычный ответ сервера: code={}, status={}, msg={}",
-                            task.code, task.status, task.msg);
             }
-        } catch (const std::exception& e) {
-            WA_LOG_ERROR("Ошибка при запросе задания: {}", e.what());
+            else {
+                if (++counter % 3 == 0) {
+                    WA_LOG_INFO("Waiting for tasks...");
+                }
+            }
+        }
+        catch (const std::exception& e) {
+            WA_LOG_WARN("Не удалось получить задание: {}", e.what());
         }
 
         for (int i = 0; running_ && i < cfg_.poll_interval_sec; ++i) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
     }
-    WA_LOG_INFO("Agent::pollLoop() завершён");
+
+    WA_LOG_INFO("Agent::pollLoop() stopped");
 }
 
 void Agent::handleTask(const TaskInfo& task) {
     task_handler_.process(task);
 }
-} 
+
+} // namespace wa
