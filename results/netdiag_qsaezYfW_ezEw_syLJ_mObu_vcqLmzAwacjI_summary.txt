@@ -1,0 +1,13 @@
+ИТОГ: WARN
+КРАТКО: найдены проблемы с задержками и ошибками на некоторых endpoint'ах
+ОБЪЕКТЫ:
+- https://www.cloudflare.com/cdn-cgi/trace | OK | code=200 | latency=536ms | причина=
+- https://api.github.com | OK | code=200 | latency=988ms | причина=
+- https://xdev.arkcom.ru:9999/app/webagent1/api/wa_task/ | CRIT | code=405 | latency=2482ms | причина=HTTP 405
+- https://youtube.com | OK | code=200 | latency=5681ms | причина=
+ПРОБЛЕМЫ:
+1) endpoint возвращает ошибку 405
+2) высокая задержка на youtube.com
+РЕКОМЕНДАЦИИ:
+1) проверить конфигурацию endpoint с 405 ошибкой
+2) оптимизировать задержку на youtube.com

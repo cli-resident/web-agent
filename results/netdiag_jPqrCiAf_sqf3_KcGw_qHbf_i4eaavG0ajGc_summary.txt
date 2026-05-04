@@ -1,0 +1,14 @@
+ИТОГ: WARN
+КРАТКО: зафиксированы задержки и ошибка 405 на одном из endpoint'ов
+ОБЪЕКТЫ:
+- https://www.cloudflare.com/cdn-cgi/trace | WARN | code=200 | latency=1175ms | причина=высокая задержка
+- https://api.github.com | WARN | code=200 | latency=1129ms | причина=высокая задержка
+- https://xdev.arkcom.ru:9999/app/webagent1/api/wa_task/ | CRIT | code=405 | latency=1536ms | причина=ошибка 405
+- https://youtube.com | WARN | code=200 | latency=3323ms | причина=высокая задержка
+ПРОБЛЕМЫ:
+1) ошибка 405 на https://xdev.arkcom.ru:9999/app/webagent1/api/wa_task/
+2) высокая задержка на трех endpoint'ах
+РЕКОМЕНДАЦИИ:
+1) проверить конфигурацию сервера xdev.arkcom.ru:9999
+2) оптимизировать сеть для снижения задержек
+3) доп. действий не требуется

@@ -1,0 +1,11 @@
+ИТОГ: WARN
+КРАТКО: один endpoint вернул код 405 с задержкой выше 1000мс
+ОБЪЕКТЫ:
+- https://www.cloudflare.com/cdn-cgi/trace | OK | code=200 | latency=905ms | причина=
+- https://api.github.com | OK | code=200 | latency=687ms | причина=
+- https://xdev.arkcom.ru:9999/app/webagent1/api/wa_task/ | WARN | code=405 | latency=1424ms | причина=HTTP 405
+ПРОБЛЕМЫ:
+1) endpoint вернул 405 с latency 1424мс
+РЕКОМЕНДАЦИИ:
+1) проверить конфигурацию метода на https://xdev.arkcom.ru:9999/app/webagent1/api/wa_task/
+2) доп. действий не требуется

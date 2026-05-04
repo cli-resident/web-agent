@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-04-13T15:25:32",
+  "session_id": "qsaezYfW-ezEw-syLJ-mObu-vcqLmzAwacjI",
+  "targets": [
+    {
+      "bytes": 208,
+      "error": "",
+      "latency_ms": 536,
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2026-04-13T15:25:32",
+      "url": "https://www.cloudflare.com/cdn-cgi/trace"
+    },
+    {
+      "bytes": 2262,
+      "error": "",
+      "latency_ms": 988,
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2026-04-13T15:25:33",
+      "url": "https://api.github.com"
+    },
+    {
+      "bytes": 1967,
+      "error": "HTTP 405",
+      "latency_ms": 2482,
+      "status_code": 405,
+      "success": false,
+      "timestamp": "2026-04-13T15:25:34",
+      "url": "https://xdev.arkcom.ru:9999/app/webagent1/api/wa_task/"
+    },
+    {
+      "bytes": 708440,
+      "error": "",
+      "latency_ms": 5681,
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2026-04-13T15:25:36",
+      "url": "https://youtube.com"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-04-10T16:35:09",
+  "session_id": "i3bzHWmG-eMgy-MemW-v0ww-qZn1b2fuacjI",
+  "targets": [
+    {
+      "bytes": 209,
+      "error": "",
+      "latency_ms": 905,
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2026-04-10T16:35:09",
+      "url": "https://www.cloudflare.com/cdn-cgi/trace"
+    },
+    {
+      "bytes": 2262,
+      "error": "",
+      "latency_ms": 687,
+      "status_code": 200,
+      "success": true,
+      "timestamp": "2026-04-10T16:35:10",
+      "url": "https://api.github.com"
+    },
+    {
+      "bytes": 1967,
+      "error": "HTTP 405",
+      "latency_ms": 1424,
+      "status_code": 405,
+      "success": false,
+      "timestamp": "2026-04-10T16:35:11",
+      "url": "https://xdev.arkcom.ru:9999/app/webagent1/api/wa_task/"
+    }
+  ]
+}

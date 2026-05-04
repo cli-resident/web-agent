@@ -11,7 +11,7 @@ WEB-AGENT — это кроссплатформенный сервис без п
 3. Создаёт `Agent`, который инициализирует HTTP-клиент, регистрируется (или использует заранее сохранённый токен) и запускает цикл опроса сервера.
 4. Все сетевые вызовы инкапсулированы в `HttpClient`, который уже умеет работать с JSON/multipart и предоставляет три операции: регистрация, запрос задания, отправка результата.
 
-Архитектура плоская и модульная: каждый модуль реализован отдельной парой `*.h/*.cpp`, экспортируется через статическую библиотеку `agent_lib` и переиспользуется тестами. Процесс многопоточный: главный поток отвечает за инициализацию, отдельный поток — за опрос сервера, пул рабочих потоков выполняет задания (лимитируется `max_parallel_tasks`).
+Архитектура плоская и модульная: каждый модуль реализован отдельной парой `*.h/*.cpp`, экспортируется через статическую библиотеку `agent_lib` и переиспользуется тестами. Процесс сейчас использует главный поток для инициализации и отдельный `poll_thread` для опроса сервера; обработка задания выполняется последовательно внутри этого потока.
 
 ---
 
@@ -78,7 +78,8 @@ flowchart LR
 | Config | `include/config.h`, `src/config.cpp` | Загрузка JSON, валидация обязательных полей и сохранение `access_code` в исходный файл |
 | Logger | `include/logger.h`, `src/logger.cpp` | Потокобезопасное логирование через spdlog (stdout + rotating file) |
 | HttpClient | `include/http_client.h`, `src/http_client.cpp` | POST `/wa_reg`, `/wa_task`, `/wa_result`, поддержка JSON и multipart, управление таймаутами и retry |
-| Agent | `include/agent.h`, `src/agent.cpp` | Регистрация, цикл опроса, очередь заданий и делегирование обработки, отправка результатов |
+| Agent | `include/agent.h`, `src/agent.cpp` | Регистрация, цикл опроса и делегирование обработки задач в `TaskHandler` |
+| TaskHandler | `include/task_handler.h`, `src/task_handler.cpp` | Обработка `TIMEOUT`, `FILE`, `TASK/EXEC/CMD`; запись `FILE` payload в `test_payload.json`; отправка результатов |
 | main | `src/main.cpp` | CLI (`--config`, `--help`, `--version`) и запуск жизненного цикла агента |
 | Tests | `tests/*.cpp` | Юнит- и интеграционные тесты модулей и инфраструктуры репозитория |
 
@@ -119,7 +120,7 @@ sequenceDiagram
         Srv-->>Http: {code_responce, status, task_code, session_id}
         Http-->>Agent: TaskInfo
         alt code==1
-            Agent->>Agent: handleTask(task) (в пуле потоков)
+            Agent->>Agent: handleTask(task)
             Agent->>Http: sendResult(session_id, result_code, files)
             Http->>Srv: POST /wa_result (multipart)
             Srv-->>Http: {code_responce, msg}
@@ -141,13 +142,12 @@ sequenceDiagram
 ├─ poll_thread (создаётся Agent::run)
 │  ├─ requestTask → распознаёт код → ставит задания в очередь
 │  └─ следит за остановкой (running_ = false) и таймаутом опроса
-└─ task_worker[N] (до max_parallel_tasks)
-   ├─ handleTask: подготовка окружения, запуск CMD/EXEC
-   ├─ ожидание завершения процесса с таймаутом
-   └─ сбор артефактов и вызов sendResult
+└─ обработка задания в poll_thread
+   ├─ TaskHandler::process: TIMEOUT/FILE/TASK
+   ├─ FILE: запись options в test_payload.json
+   └─ sendResult: отправка статуса и файлов на сервер
 ```
 
-При остановке `Agent::stop()` выставляет `running_ = false`, poll_thread корректно завершает цикл, дожидается всех worker'ов, и только после этого управление возвращается в `main`.
+При остановке `Agent::stop()` выставляет `running_ = false`, poll_thread корректно завершает цикл, и управление возвращается в `main`.
 
 ---
-
