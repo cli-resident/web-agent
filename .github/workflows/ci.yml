@@ -35,13 +35,23 @@ jobs:
 
       - name: Copy DLLs next to tests (Windows)
         if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          $target = "$Env:GITHUB_WORKSPACE\build\tests\Debug"
+          $target = Join-Path $Env:GITHUB_WORKSPACE 'build\tests\Debug'
           if (!(Test-Path $target)) { New-Item -ItemType Directory -Path $target | Out-Null }
+          $targetResolved = (Resolve-Path $target).Path
+
           Get-ChildItem -Path "$Env:GITHUB_WORKSPACE\build" -Recurse -Filter *.dll | ForEach-Object {
-            Copy-Item -Path $_.FullName -Destination $target -Force
+            $src = $_.FullName
+            $dst = Join-Path $targetResolved $_.Name
+
+            # Skip no-op copy when source DLL is already in target folder.
+            if ($src -ieq $dst) {
+              Write-Host "Skip self-copy: $src"
+            } else {
+              Copy-Item -Path $src -Destination $dst -Force
+            }
           }
-          echo $target | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Dump wa_tests dependencies (Windows)
         if: runner.os == 'Windows'
