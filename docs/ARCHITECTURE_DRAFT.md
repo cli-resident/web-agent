@@ -9,7 +9,8 @@ WEB-AGENT — это кроссплатформенный сервис без п
 1. Загружает конфигурацию (`Config`), валидирует обязательные поля и, при необходимости, сохраняет выданный `access_code` обратно в `config.json`.
 2. Поднимает логирование (`Logger`), чтобы все потоки писали в stdout и вращающийся файл `agent.log`.
 3. Создаёт `Agent`, который инициализирует HTTP-клиент, регистрируется (или использует заранее сохранённый токен) и запускает цикл опроса сервера.
-4. Все сетевые вызовы инкапсулированы в `HttpClient`, который уже умеет работать с JSON/multipart и предоставляет три операции: регистрация, запрос задания, отправка результата.
+4. Все сетевые вызовы к серверу инкапсулированы в `HttpClient`: регистрация, запрос задания, отправка результата.
+5. Основная бизнес-логика задания в `TaskHandler`: проверка endpoint-ов, сбор отчёта, запрос AI-summary, отправка артефактов.
 
 Архитектура плоская и модульная: каждый модуль реализован отдельной парой `*.h/*.cpp`, экспортируется через статическую библиотеку `agent_lib` и переиспользуется тестами. Процесс сейчас использует главный поток для инициализации и отдельный `poll_thread` для опроса сервера; обработка задания выполняется последовательно внутри этого потока.
 
@@ -79,7 +80,7 @@ flowchart LR
 | Logger | `include/logger.h`, `src/logger.cpp` | Потокобезопасное логирование через spdlog (stdout + rotating file) |
 | HttpClient | `include/http_client.h`, `src/http_client.cpp` | POST `/wa_reg`, `/wa_task`, `/wa_result`, поддержка JSON и multipart, управление таймаутами и retry |
 | Agent | `include/agent.h`, `src/agent.cpp` | Регистрация, цикл опроса и делегирование обработки задач в `TaskHandler` |
-| TaskHandler | `include/task_handler.h`, `src/task_handler.cpp` | Обработка `TIMEOUT`, `FILE`, `TASK/EXEC/CMD`; запись `FILE` payload в `test_payload.json`; отправка результатов |
+| TaskHandler | `include/task_handler.h`, `src/task_handler.cpp` | Обработка `TIMEOUT`, `FILE`, `TASK/EXEC/CMD`; HTTP-проверка endpoint-ов; запись `netdiag_*.json` и `netdiag_*_summary.txt`; отправка результатов |
 | main | `src/main.cpp` | CLI (`--config`, `--help`, `--version`) и запуск жизненного цикла агента |
 | Tests | `tests/*.cpp` | Юнит- и интеграционные тесты модулей и инфраструктуры репозитория |
 
@@ -96,6 +97,7 @@ sequenceDiagram
     participant Agent as Agent
     participant Http as HttpClient
     participant Srv as Server
+    participant AI as Mistral API
 
     User->>Main: ./web_agent --config config.json
     Main->>Cfg: Config::load(path)
@@ -121,6 +123,9 @@ sequenceDiagram
         Http-->>Agent: TaskInfo
         alt code==1
             Agent->>Agent: handleTask(task)
+            Agent->>Agent: probe targets (HTTP GET)
+            Agent->>AI: POST report JSON
+            AI-->>Agent: summary text
             Agent->>Http: sendResult(session_id, result_code, files)
             Http->>Srv: POST /wa_result (multipart)
             Srv-->>Http: {code_responce, msg}
@@ -143,8 +148,9 @@ sequenceDiagram
 │  ├─ requestTask → распознаёт код → ставит задания в очередь
 │  └─ следит за остановкой (running_ = false) и таймаутом опроса
 └─ обработка задания в poll_thread
-   ├─ TaskHandler::process: TIMEOUT/FILE/TASK
+   ├─ TaskHandler::process: TIMEOUT/FILE/TASK/EXEC/CMD
    ├─ FILE: запись options в test_payload.json
+   ├─ TASK/EXEC/CMD: probe endpoint-ов, JSON-отчёт, AI-summary
    └─ sendResult: отправка статуса и файлов на сервер
 ```
 
